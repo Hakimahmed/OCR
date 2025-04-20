@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Image to Text - Urdu OCR</title>
+  <title>Image to Text OCR</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -43,14 +43,14 @@
     .output-box {
       margin-top: 20px;
       padding: 20px;
-      text-align: right;
       font-size: 1.2rem;
       color: #222;
-      direction: rtl;
       background: #fefefe;
       border-radius: 10px;
       border: 1px solid #ddd;
       white-space: pre-wrap;
+      text-align: left;
+      direction: ltr;
     }
     #loader {
       margin-top: 15px;
@@ -69,18 +69,40 @@
       font-size: 1rem;
       cursor: pointer;
     }
+    select {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
 
-<h1>Image to Text (Urdu)</h1>
+<h1>Image to Text (Multi-Language OCR)</h1>
 <div class="container">
   <label for="imageInput" class="upload-area" id="dropZone">
     Click or Paste Image Here to Upload
     <input type="file" id="imageInput" accept="image/*" />
   </label>
+
+  <select id="langSelect">
+    <option value="eng" selected>English</option>
+    <option value="urd">Urdu</option>
+    <option value="ara">Arabic</option>
+    <option value="hin">Hindi</option>
+    <option value="fas">Persian</option>
+    <option value="fra">French</option>
+    <option value="spa">Spanish</option>
+    <option value="deu">German</option>
+    <option value="chi_sim">Chinese (Simplified)</option>
+    <option value="jpn">Japanese</option>
+    <!-- Add more languages as needed -->
+  </select>
+
   <div id="loader">⏳ Processing image...</div>
-  <div class="output-box" id="outputText">Your extracted Urdu text will appear here...</div>
+  <div class="output-box" id="outputText">Your extracted text will appear here...</div>
 </div>
 
 <!-- Tesseract.js -->
@@ -90,14 +112,15 @@
   const dropZone = document.getElementById('dropZone');
   const outputText = document.getElementById('outputText');
   const loader = document.getElementById('loader');
+  const langSelect = document.getElementById('langSelect');
 
-  // Handle image upload
+  // Image upload
   imageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) handleOCR(file);
   });
 
-  // Paste image functionality
+  // Paste image
   window.addEventListener('paste', (e) => {
     const items = e.clipboardData.items;
     for (const item of items) {
@@ -108,16 +131,14 @@
     }
   });
 
-  // Drag & Drop
+  // Drag and Drop
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.style.background = '#e3eaf0';
   });
-
   dropZone.addEventListener('dragleave', () => {
     dropZone.style.background = '#f0f4f7';
   });
-
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.style.background = '#f0f4f7';
@@ -131,11 +152,29 @@
     const reader = new FileReader();
     reader.onload = async () => {
       const imgData = reader.result;
-      const result = await Tesseract.recognize(imgData, 'urd', {
-        langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
-        logger: m => console.log(m)
-      });
-      outputText.textContent = result.data.text.trim() || "❌ Urdu text not recognized!";
+      const selectedLang = langSelect.value;
+
+      const result = await Tesseract.recognize(
+        imgData,
+        selectedLang,
+        {
+          langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
+          logger: m => console.log(m)
+        }
+      );
+
+      const text = result.data.text.trim();
+      outputText.textContent = text || "❌ Text not recognized!";
+      
+      // Adjust direction if RTL language
+      if (["urd", "ara", "fas", "heb"].includes(selectedLang)) {
+        outputText.style.direction = "rtl";
+        outputText.style.textAlign = "right";
+      } else {
+        outputText.style.direction = "ltr";
+        outputText.style.textAlign = "left";
+      }
+
       loader.style.display = 'none';
     };
     reader.readAsDataURL(file);
