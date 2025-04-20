@@ -1,103 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Image to Text</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image to Text - Urdu OCR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #dbe6f6, #c5796d);
+      margin: 0;
+      padding: 40px 20px;
+      direction: ltr;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
       text-align: center;
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 25px;
     }
-    .upload-box {
-      border: 2px dashed #ccc;
-      padding: 2rem;
+
+    .upload-area {
+      border: 2px dashed #999;
+      border-radius: 10px;
+      padding: 25px;
+      text-align: center;
+      background: #fafafa;
       cursor: pointer;
-      margin-bottom: 1rem;
+      transition: 0.3s;
     }
-    .upload-box:hover {
-      background-color: #f9f9f9;
-    }
-    #output {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      border: 1px solid #ccc;
-      white-space: pre-wrap;
+
+    .upload-area:hover {
       background: #f0f0f0;
     }
-    canvas {
+
+    .upload-area p {
+      font-size: 18px;
+      color: #555;
+    }
+
+    input[type="file"] {
       display: none;
+    }
+
+    #output {
+      margin-top: 30px;
+      background: #fdfdfd;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 20px;
+      min-height: 120px;
+      white-space: pre-wrap;
+      font-size: 20px;
+      font-family: 'Noto Nastaliq Urdu', serif;
+      direction: rtl;
+      color: #222;
+      line-height: 1.8;
+    }
+
+    .loading {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #007bff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      .upload-area p {
+        font-size: 16px;
+      }
+      #output {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>Image to Text Converter</h1>
+<div class="container">
+  <h1>📷 Image to Text (Urdu OCR)</h1>
 
-  <div class="upload-box" id="drop-area">
-    <p><strong>Click to upload or paste an image here</strong></p>
-    <input type="file" id="imageInput" accept="image/*" style="display:none;">
+  <label for="imageInput" class="upload-area">
+    <p>Click here to upload or paste an image (Ctrl+V)</p>
+  </label>
+  <input type="file" id="imageInput" accept="image/*">
+
+  <div class="loading" id="loading" style="display: none;">
+    <div class="spinner"></div>
+    <p>Please wait... extracting text from image</p>
   </div>
 
-  <p><small>Supports copy-paste and drag & drop</small></p>
+  <div id="output">Extracted Urdu text will appear here...</div>
+</div>
 
-  <div id="output">Extracted text will appear here...</div>
+<script>
+  const imageInput = document.getElementById('imageInput');
+  const output = document.getElementById('output');
+  const loading = document.getElementById('loading');
 
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
-  <script>
-    const dropArea = document.getElementById('drop-area');
-    const imageInput = document.getElementById('imageInput');
-    const output = document.getElementById('output');
+  function showLoading(show) {
+    loading.style.display = show ? 'block' : 'none';
+  }
 
-    dropArea.addEventListener('click', () => imageInput.click());
+  function processImage(imgSrc) {
+    showLoading(true);
+    output.textContent = "";
 
-    imageInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) processImage(file);
+    Tesseract.recognize(imgSrc, 'urd', {
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
+      logger: m => console.log(m)
+    }).then(({ data: { text } }) => {
+      showLoading(false);
+      output.textContent = text.trim() || "❌ No Urdu text found in the image.";
+    }).catch(err => {
+      console.error(err);
+      showLoading(false);
+      output.textContent = "⚠️ Something went wrong. Please try again.";
     });
+  }
 
-    // Handle paste
-    window.addEventListener('paste', (e) => {
-      const items = e.clipboardData.items;
-      for (let item of items) {
-        if (item.type.indexOf("image") !== -1) {
-          const blob = item.getAsFile();
-          processImage(blob);
-          break;
-        }
-      }
-    });
-
-    // Handle drag & drop
-    dropArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropArea.style.background = '#eef';
-    });
-    dropArea.addEventListener('dragleave', () => {
-      dropArea.style.background = '';
-    });
-    dropArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropArea.style.background = '';
-      const file = e.dataTransfer.files[0];
-      if (file) processImage(file);
-    });
-
-    function processImage(file) {
-      output.textContent = "Processing...";
+  imageInput.addEventListener('change', function () {
+    if (this.files[0]) {
       const reader = new FileReader();
-      reader.onload = () => {
-        Tesseract.recognize(reader.result, 'eng', {
-          logger: m => console.log(m)
-        }).then(({ data: { text } }) => {
-          output.textContent = text || "No text found.";
-        }).catch(err => {
-          output.textContent = "Error: " + err.message;
-        });
-      };
-      reader.readAsDataURL(file);
+      reader.onload = () => processImage(reader.result);
+      reader.readAsDataURL(this.files[0]);
     }
-  </script>
+  });
+
+  window.addEventListener('paste', function (event) {
+    const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+    for (const item of items) {
+      if (item.type.indexOf("image") === 0) {
+        const file = item.getAsFile();
+        const reader = new FileReader();
+        reader.onload = (event) => processImage(event.target.result);
+        reader.readAsDataURL(file);
+      }
+    }
+  });
+</script>
+
 </body>
 </html>
