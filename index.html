@@ -3,227 +3,239 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Image to Text (OCR)</title>
+  <title>Image to Text OCR</title>
   <style>
+    :root {
+      --primary: #4e73df;
+      --background: #f8f9fc;
+      --container-bg: #ffffff;
+      --text: #343a40;
+      --accent: #1cc88a;
+      --border: #d1d3e2;
+      --dark-bg: #1a1c2e;
+      --dark-text: #f1f1f1;
+      --dark-container: #2c2e3e;
+    }
+
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f3f7fc;
+      background: var(--background);
+      color: var(--text);
       margin: 0;
-      padding: 0;
+      padding: 40px 20px;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
       flex-direction: column;
-      transition: background 0.3s ease, color 0.3s ease;
+      align-items: center;
+      min-height: 100vh;
+      transition: 0.4s ease all;
     }
+
+    .dark-mode {
+      background: var(--dark-bg);
+      color: var(--dark-text);
+    }
+
     h1 {
-      margin-top: 20px;
       font-size: 2.5rem;
-      color: #333;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
+      color: var(--primary);
     }
+
     .container {
-      background: #fff;
+      background: var(--container-bg);
       border-radius: 16px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-      padding: 40px;
-      width: 80%;
-      max-width: 600px;
+      padding: 30px;
+      width: 100%;
+      max-width: 700px;
+      text-align: center;
       transition: background 0.3s ease;
     }
+
     .dark-mode .container {
-      background: #2c3e50;
+      background: var(--dark-container);
     }
-    .dark-mode body {
-      background: #34495e;
-      color: #ecf0f1;
-    }
+
     .upload-area {
-      border: 3px dashed #3498db;
-      border-radius: 12px;
-      padding: 60px;
-      background: #eef5fb;
+      border: 3px dashed var(--primary);
+      padding: 60px 20px;
+      border-radius: 15px;
+      background: #eef1ff;
+      font-size: 1.2rem;
       cursor: pointer;
       transition: 0.3s;
-      font-size: 1.2rem;
-      color: #333;
+      margin-bottom: 30px;
     }
+
     .dark-mode .upload-area {
-      background: #34495e;
-      color: #ecf0f1;
-      border-color: #2980b9;
+      background: #3a3f5a;
     }
+
     .upload-area:hover {
-      background: #d6e7f5;
+      background: #d6deff;
     }
+
     .output-box {
-      margin-top: 20px;
-      padding: 20px;
-      font-size: 1.2rem;
-      color: #333;
-      background: #fefefe;
+      background: #f1f4fa;
       border-radius: 10px;
-      border: 1px solid #ddd;
-      white-space: pre-wrap;
+      border: 1px solid var(--border);
+      padding: 20px;
+      font-size: 1.1rem;
       text-align: left;
+      white-space: pre-wrap;
       direction: ltr;
+      min-height: 100px;
+      transition: background 0.3s ease;
     }
+
     .dark-mode .output-box {
-      background: #2c3e50;
-      color: #ecf0f1;
-      border-color: #7f8c8d;
+      background: #3c4059;
+      border-color: #666;
     }
-    #loader {
-      margin-top: 15px;
-      display: none;
+
+    .btn {
+      margin-top: 20px;
+      padding: 10px 25px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
     }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #3d5acf;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-accent:hover {
+      background: #17b97c;
+    }
+
     input[type="file"] {
       display: none;
     }
-    #copyBtn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #3498db;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background 0.3s;
+
+    #loader {
+      margin-top: 15px;
+      font-weight: bold;
+      display: none;
     }
-    #copyBtn:hover {
-      background: #2980b9;
-    }
-    #darkModeToggle {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #2c3e50;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    #darkModeToggle:hover {
-      background: #34495e;
+
+    @media (max-width: 600px) {
+      .upload-area {
+        padding: 40px 10px;
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
 
-<h1>Extract Text from Image</h1>
-<div class="container">
-  <label for="imageInput" class="upload-area" id="dropZone">
-    Drop or Click to Upload Image
-    <input type="file" id="imageInput" accept="image/*" />
-  </label>
+  <h1>Image to Text OCR</h1>
+  <div class="container">
+    <label for="imageInput" class="upload-area" id="dropZone">
+      Click or Drag & Drop Image Here
+      <input type="file" id="imageInput" accept="image/*" />
+    </label>
 
-  <div id="loader">⏳ Processing your image...</div>
-  <div class="output-box" id="outputText">Your extracted text will appear here...</div>
-  
-  <button id="copyBtn" style="display:none;">Copy to Clipboard</button>
-  <button id="darkModeToggle">Toggle Dark Mode</button>
-</div>
+    <div id="loader">⏳ Processing image...</div>
+    <div class="output-box" id="outputText">Extracted text will appear here...</div>
 
-<!-- Tesseract.js -->
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
-<script>
-  const imageInput = document.getElementById('imageInput');
-  const dropZone = document.getElementById('dropZone');
-  const outputText = document.getElementById('outputText');
-  const loader = document.getElementById('loader');
-  const copyBtn = document.getElementById('copyBtn');
-  const darkModeToggle = document.getElementById('darkModeToggle');
+    <button id="copyBtn" class="btn btn-accent" style="display:none;">Copy to Clipboard</button>
+    <button id="darkModeToggle" class="btn btn-primary">Toggle Dark Mode</button>
+  </div>
 
-  let isDarkMode = false;
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const dropZone = document.getElementById('dropZone');
+    const outputText = document.getElementById('outputText');
+    const loader = document.getElementById('loader');
+    const copyBtn = document.getElementById('copyBtn');
+    const darkToggle = document.getElementById('darkModeToggle');
+    let isDark = false;
 
-  // Dark Mode Toggle
-  darkModeToggle.addEventListener('click', () => {
-    isDarkMode = !isDarkMode;
-    document.body.classList.toggle('dark-mode', isDarkMode);
-    darkModeToggle.textContent = isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-  });
+    darkToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      document.body.classList.toggle('dark-mode', isDark);
+    });
 
-  // Image upload
-  imageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) handleOCR(file);
-  });
+    imageInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) processImage(file);
+    });
 
-  // Paste image
-  window.addEventListener('paste', (e) => {
-    const items = e.clipboardData.items;
-    for (const item of items) {
-      if (item.type.indexOf('image') !== -1) {
-        const file = item.getAsFile();
-        if (file) handleOCR(file);
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.style.background = '#d6deff';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.background = '#eef1ff';
+    });
+
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.style.background = '#eef1ff';
+      const file = e.dataTransfer.files[0];
+      if (file) processImage(file);
+    });
+
+    window.addEventListener('paste', (e) => {
+      const items = e.clipboardData.items;
+      for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) processImage(file);
+        }
       }
-    }
-  });
+    });
 
-  // Drag and Drop
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.style.background = '#e3eaf0';
-  });
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.style.background = '#eef5fb';
-  });
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.style.background = '#eef5fb';
-    const file = e.dataTransfer.files[0];
-    if (file) handleOCR(file);
-  });
+    async function processImage(file) {
+      loader.style.display = 'block';
+      outputText.textContent = '';
+      const reader = new FileReader();
 
-  async function handleOCR(file) {
-    loader.style.display = 'block';
-    outputText.textContent = '';
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const imgData = reader.result;
+      reader.onload = async () => {
+        const imgData = reader.result;
+        const langSet = 'eng+urd+ara+hin+deu+spa+fra';
 
-      // Combine multiple languages for better recognition
-      const langSet = 'eng+urd+ara+hin+fra+deu+spa';
-
-      const result = await Tesseract.recognize(
-        imgData,
-        langSet,
-        {
+        const result = await Tesseract.recognize(imgData, langSet, {
           langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
           logger: m => console.log(m)
-        }
-      );
+        });
 
-      const text = result.data.text.trim();
-      outputText.textContent = text || "❌ No text recognized!";
-      copyBtn.style.display = text ? 'block' : 'none';
+        const text = result.data.text.trim();
+        outputText.textContent = text || "❌ No text found!";
+        copyBtn.style.display = text ? 'inline-block' : 'none';
 
-      // Auto adjust text direction for RTL languages like Urdu
-      const rtlPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]+/;
-      if (rtlPattern.test(text)) {
-        outputText.style.direction = "rtl";
-        outputText.style.textAlign = "right";
-      } else {
-        outputText.style.direction = "ltr";
-        outputText.style.textAlign = "left";
-      }
+        const rtlPattern = /[\u0600-\u06FF]/;
+        outputText.style.direction = rtlPattern.test(text) ? 'rtl' : 'ltr';
+        outputText.style.textAlign = rtlPattern.test(text) ? 'right' : 'left';
 
-      loader.style.display = 'none';
-    };
-    reader.readAsDataURL(file);
-  }
+        loader.style.display = 'none';
+      };
 
-  // Copy to clipboard functionality
-  copyBtn.addEventListener('click', () => {
-    const text = outputText.textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      alert('Text copied to clipboard!');
+      reader.readAsDataURL(file);
+    }
+
+    copyBtn.addEventListener('click', () => {
+      const text = outputText.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Copied to clipboard!");
+      });
     });
-  });
-</script>
+  </script>
 
 </body>
 </html>
